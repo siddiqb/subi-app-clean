@@ -33,9 +33,7 @@
 │   │       ├── button.tsx
 │   │       ├── card.tsx
 │   │       ├── input.tsx
-│   │       ├── label.tsx
-│   │       ├── toast.tsx
-│   │       └── use-toast.ts
+│   │       └── label.tsx
 │   ├── hooks
 │   ├── lib
 │   │   ├── supabase.ts
@@ -44,4 +42,4 @@
 ├── tailwind.config.ts
 └── tsconfig.json
 
-12 directories, 33 files
+12 directories, 31 files

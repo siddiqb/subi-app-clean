@@ -20,10 +20,6 @@ export default function DashboardPage() {
   const [askingPrice, setAskingPrice] = useState('')
   const [annualRevenue, setAnnualRevenue] = useState('')
   const [annualProfit, setAnnualProfit] = useState('')
-  const [cashFlow, setCashFlow] = useState('')
-  const [bankLoanInterestRate, setBankLoanInterestRate] = useState('')
-  const [bankLoanTerm, setBankLoanTerm] = useState('')
-  const [buyerEquityPercentage, setBuyerEquityPercentage] = useState('')
 
   useEffect(() => {
     const getUser = async () => {
@@ -44,16 +40,12 @@ export default function DashboardPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Perform calculations
+    // Perform calculations here
     const price = parseFloat(askingPrice)
     const revenue = parseFloat(annualRevenue)
     const profit = parseFloat(annualProfit)
-    const cf = parseFloat(cashFlow)
-    const interestRate = parseFloat(bankLoanInterestRate) / 100
-    const term = parseFloat(bankLoanTerm)
-    const equityPercentage = parseFloat(buyerEquityPercentage) / 100
 
-    if (isNaN(price) || isNaN(revenue) || isNaN(profit) || isNaN(cf) || isNaN(interestRate) || isNaN(term) || isNaN(equityPercentage)) {
+    if (isNaN(price) || isNaN(revenue) || isNaN(profit)) {
       toast({
         title: "Invalid Input",
         description: "Please enter valid numbers for all fields.",
@@ -64,23 +56,10 @@ export default function DashboardPage() {
 
     const revenueMultiple = price / revenue
     const profitMultiple = price / profit
-    const cashFlowMultiple = price / cf
-    const downPayment = price * equityPercentage
-    const loanAmount = price - downPayment
-    const monthlyPayment = (loanAmount * (interestRate / 12) * Math.pow(1 + interestRate / 12, term * 12)) / (Math.pow(1 + interestRate / 12, term * 12) - 1)
-    const annualDebtService = monthlyPayment * 12
-    const debtServiceCoverageRatio = cf / annualDebtService
 
     toast({
       title: "Analysis Results",
-      description: `
-        Revenue Multiple: ${revenueMultiple.toFixed(2)}x
-        Profit Multiple: ${profitMultiple.toFixed(2)}x
-        Cash Flow Multiple: ${cashFlowMultiple.toFixed(2)}x
-        Down Payment: $${downPayment.toFixed(2)}
-        Monthly Loan Payment: $${monthlyPayment.toFixed(2)}
-        Debt Service Coverage Ratio: ${debtServiceCoverageRatio.toFixed(2)}
-      `,
+      description: `Revenue Multiple: ${revenueMultiple.toFixed(2)}x\nProfit Multiple: ${profitMultiple.toFixed(2)}x`,
     })
   }
 
@@ -92,8 +71,8 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Business Analysis Calculator</CardTitle>
-          <CardDescription>Enter the details of the business youre considering</CardDescription>
+          <CardTitle className="text-2xl font-bold">Welcome to your Dashboard</CardTitle>
+          <CardDescription>You&apos;re signed in as {user.email}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,46 +112,6 @@ export default function DashboardPage() {
                 type="number"
                 value={annualProfit}
                 onChange={(e) => setAnnualProfit(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cashFlow">Annual Cash Flow ($)</Label>
-              <Input
-                id="cashFlow"
-                type="number"
-                value={cashFlow}
-                onChange={(e) => setCashFlow(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bankLoanInterestRate">Bank Loan Interest Rate (%)</Label>
-              <Input
-                id="bankLoanInterestRate"
-                type="number"
-                value={bankLoanInterestRate}
-                onChange={(e) => setBankLoanInterestRate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bankLoanTerm">Bank Loan Term (years)</Label>
-              <Input
-                id="bankLoanTerm"
-                type="number"
-                value={bankLoanTerm}
-                onChange={(e) => setBankLoanTerm(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="buyerEquityPercentage">Buyers Equity Percentage (%)</Label>
-              <Input
-                id="buyerEquityPercentage"
-                type="number"
-                value={buyerEquityPercentage}
-                onChange={(e) => setBuyerEquityPercentage(e.target.value)}
                 required
               />
             </div>
