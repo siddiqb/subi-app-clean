@@ -1,0 +1,47 @@
+.
+├── README.md
+├── components.json
+├── file_structure.txt
+├── next-env.d.ts
+├── next.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── src
+│   ├── app
+│   │   ├── dashboard
+│   │   │   └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── fonts
+│   │   │   ├── GeistMonoVF.woff
+│   │   │   └── GeistVF.woff
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── register
+│   │       └── page.tsx
+│   ├── components
+│   │   └── ui
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── toast.tsx
+│   │       └── use-toast.ts
+│   ├── hooks
+│   ├── lib
+│   │   ├── supabase.ts
+│   │   └── utils.ts
+│   └── middleware.ts
+├── tailwind.config.ts
+└── tsconfig.json
+
+12 directories, 33 files

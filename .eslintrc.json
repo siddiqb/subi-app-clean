@@ -1,12 +1,21 @@
 {
+  // 1. Extend from recommended configs
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended"
   ],
+  
+  // 2. Specify the parser for TypeScript
   "parser": "@typescript-eslint/parser",
+  
+  // 3. Add TypeScript-specific plugins
   "plugins": ["@typescript-eslint"],
+  
+  // 4. Set as root configuration
+  "root": true,
+
+  // 5. (Optional) Add any custom rules here
   "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": "error"
+    // Example: "@typescript-eslint/explicit-module-boundary-types": "off"
   }
 }
