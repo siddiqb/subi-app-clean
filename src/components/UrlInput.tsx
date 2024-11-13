@@ -1,17 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { z } from 'zod'
-import { scrapeBusinessData } from '@/lib/scrapingbee-client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { scrapeBusinessData } from '@/lib/scraper'
 
-// Define the URL schema for validation
-const urlSchema = z.string().url()
+interface UrlInputProps {
+  onDataScraped: (data: any) => void
+}
 
-export default function UrlInput() {
+export function UrlInput({ onDataScraped }: UrlInputProps) {
   const [url, setUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
@@ -21,53 +20,39 @@ export default function UrlInput() {
     setIsLoading(true)
 
     try {
-      // Validate the URL
-      urlSchema.parse(url)
+      // Validate URL
+      new URL(url)
 
       // Scrape the business data
-      const scrapedData = await scrapeBusinessData(url)
-
-      // TODO: Handle the scraped data (e.g., update form fields, store in state, etc.)
-      console.log('Scraped data:', scrapedData)
+      const data = await scrapeBusinessData(url)
+      onDataScraped(data)
 
       toast({
-        title: 'Success',
-        description: 'Business data scraped successfully!',
+        title: 'Data scraped successfully',
+        description: 'The business data has been retrieved.',
       })
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({
-          title: 'Invalid URL',
-          description: 'Please enter a valid URL.',
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to scrape business data. Please try again or enter the information manually.',
-          variant: 'destructive',
-        })
-      }
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while scraping the data.',
+        variant: 'destructive',
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="url">Business Website URL</Label>
-        <Input
-          id="url"
-          type="url"
-          placeholder="https://www.example.com"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          required
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="flex space-x-2">
+      <Input
+        type="url"
+        placeholder="Enter business listing URL"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        required
+      />
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Scraping...' : 'Scrape Business Data'}
+        {isLoading ? 'Scraping...' : 'Scrape'}
       </Button>
     </form>
   )

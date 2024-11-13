@@ -6,84 +6,97 @@ import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { useToast } from '@/components/ui/use-toast'
 
-// Define the shape of our error object
-interface AuthError {
-  message: string;
-}
-
-export default function Login() {
-  // State for form inputs and error handling
+export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  
-  // Hooks for routing and Supabase client
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
   const supabase = createClientComponentClient()
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    try {
-      // Attempt to sign in with Supabase
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      // Redirect to dashboard on successful login
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      })
+    } else {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back!",
+      })
       router.push('/dashboard')
-    } catch (error) {
-      // Type assertion to treat the caught error as AuthError
-      const authError = error as AuthError
-      setError(authError.message)
     }
+
+    setLoading(false)
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
-          <CardDescription className="text-center">Enter your email and password to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-10 shadow-md">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Login to SUBI</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Enter your credentials to access your account
+          </p>
+        </div>
+        <form onSubmit={handleLogin} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
-                placeholder="m@example.com"
+                autoComplete="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                className="mt-1"
               />
             </div>
-            <div className="space-y-2">
+            <div>
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                className="mt-1"
               />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full">Sign In</Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
+          </div>
+
+          <div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Logging in...' : 'Log in'}
+            </Button>
+          </div>
+        </form>
+        <div className="mt-4 text-center text-sm">
+          <p>
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary hover:underline">
-              Sign up
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              Register here
             </Link>
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

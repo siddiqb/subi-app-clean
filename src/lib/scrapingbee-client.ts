@@ -1,57 +1,53 @@
 import { z } from 'zod';
 
-// Define the environment variable schema
-const envSchema = z.object({
-  SCRAPINGBEE_API_KEY: z.string().min(1).default(''),
-});
-
-// Validate environment variables
-const env = envSchema.parse({
-  SCRAPINGBEE_API_KEY: process.env.NEXT_PUBLIC_SCRAPINGBEE_API_KEY || '',
-});
-
-if (!env.SCRAPINGBEE_API_KEY) {
-  console.warn('SCRAPINGBEE_API_KEY is not set. API calls will fail.');
-}
-
-// ... rest of the file remains the same
+// Mock data
+const mockData = {
+  "Name": "Medical Spa Offering Noninvasive Health/Beauty Cosmetic Procedures",
+  "Location": "Monmouth County, NJ",
+  "Price": "$600,000",
+  "Revenue": "$400,000",
+  "CashFlow": "$169,000",
+  "Description": "This medical spa specializes in noninvasive health and beauty procedures...",
+  "Broker": "Empire Business Management",
+  "YearEstablished": "2018"
+};
 
 // Define the response schema for scraped data
 const scrapedDataSchema = z.object({
   businessName: z.string().optional(),
-  annualRevenue: z.number().positive().optional(),
-  employeeCount: z.number().int().positive().optional(),
-  yearFounded: z.number().int().positive().optional(),
-  industry: z.string().optional(),
+  askingPrice: z.string().optional(),
+  annualRevenue: z.string().optional(),
+  cashFlow: z.string().optional(),
+  location: z.string().optional(),
+  description: z.string().optional(),
+  broker: z.string().optional(),
+  yearEstablished: z.string().optional(),
 });
 
-type ScrapedData = z.infer<typeof scrapedDataSchema>;
+export type ScrapedData = z.infer<typeof scrapedDataSchema>;
 
-/**
- * Scrapes business data from a given URL using the ScrapingBee API.
- * 
- * @param url - The URL of the business website to scrape
- * @returns A promise that resolves to the scraped business data
- * @throws Will throw an error if the API request fails or if the response doesn't match the expected schema
- */
-export async function scrapeBusinessData(url: string): Promise<ScrapedData> {
-  const apiUrl = `https://app.scrapingbee.com/api/v1/?api_key=${env.SCRAPINGBEE_API_KEY}&url=${encodeURIComponent(url)}`;
+export async function scrapeBusinessData(url: string, profileId: string): Promise<ScrapedData> {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  try {
-    const response = await fetch(apiUrl);
+  // Use mock data instead of making an actual API call
+  const rawData = mockData;
 
-    if (!response.ok) {
-      throw new Error(`ScrapingBee API request failed: ${response.statusText}`);
-    }
+  // Transform the raw data to match our schema
+  const transformedData = {
+    businessName: rawData.Name || '',
+    askingPrice: rawData.Price || '',
+    annualRevenue: rawData.Revenue || '',
+    cashFlow: rawData.CashFlow || '',
+    location: rawData.Location || '',
+    description: rawData.Description || '',
+    broker: rawData.Broker || '',
+    yearEstablished: rawData.YearEstablished || ''
+  };
 
-    const rawData = await response.json();
+  // Validate and parse the scraped data
+  const validatedData = scrapedDataSchema.parse(transformedData);
+  console.log('Validated data:', validatedData);
 
-    // Validate and parse the scraped data
-    const validatedData = scrapedDataSchema.parse(rawData);
-
-    return validatedData;
-  } catch (error) {
-    console.error('Error scraping business data:', error);
-    throw new Error('Failed to scrape business data. Please try again or enter the information manually.');
-  }
+  return validatedData;
 }

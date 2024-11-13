@@ -1,0 +1,757 @@
+.
+├── README.md
+├── combined_subi_app_clean.txt
+├── components.json
+├── create_subi_file_structure.sh
+├── file_structure.txt
+├── next-env.d.ts
+├── next.config.js
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── postcss.config.mjs
+├── src
+│   ├── app
+│   │   ├── dashboard
+│   │   │   └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── fonts
+│   │   │   ├── GeistMonoVF.woff
+│   │   │   └── GeistVF.woff
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   │   └── page.tsx
+│   │   ├── manual-entry
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   └── register
+│   │       └── page.tsx
+│   ├── components
+│   │   ├── BusinessDataForm.tsx
+│   │   ├── UrlInput.tsx
+│   │   └── ui
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── toast.tsx
+│   │       ├── toaster.tsx
+│   │       └── use-toast.ts
+│   ├── hooks
+│   ├── lib
+│   │   ├── scrapingbee-client.ts
+│   │   ├── supabase.ts
+│   │   └── utils.ts
+│   └── middleware.ts
+├── subi_app_clean_structure.txt
+├── tailwind.config.ts
+└── tsconfig.json
+
+12 directories, 37 files
+-e 
+
+====== CONTENT OF CRITICAL FILES ======
+
+-e 
+File: next.config.js
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+    env: {
+    SCRAPINGBEE_API_KEY: process.env.SCRAPINGBEE_API_KEY,
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;-e 
+
+File: src/lib/scrapingbee-client.ts
+
+import { z } from 'zod';
+
+// Mock data
+const mockData = {
+  "Name": "Medical Spa Offering Noninvasive Health/Beauty Cosmetic Procedures",
+  "Location": "Monmouth County, NJ",
+  "Price": "$600,000",
+  "Revenue": "$400,000",
+  "CashFlow": "$169,000",
+  "Description": "This medical spa specializes in noninvasive health and beauty procedures...",
+  "Broker": "Empire Business Management",
+  "YearEstablished": "2018"
+};
+
+// Define the response schema for scraped data
+const scrapedDataSchema = z.object({
+  businessName: z.string().optional(),
+  askingPrice: z.string().optional(),
+  annualRevenue: z.string().optional(),
+  cashFlow: z.string().optional(),
+  location: z.string().optional(),
+  description: z.string().optional(),
+  broker: z.string().optional(),
+  yearEstablished: z.string().optional(),
+});
+
+export type ScrapedData = z.infer<typeof scrapedDataSchema>;
+
+export async function scrapeBusinessData(url: string, profileId: string): Promise<ScrapedData> {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Use mock data instead of making an actual API call
+  const rawData = mockData;
+
+  // Transform the raw data to match our schema
+  const transformedData = {
+    businessName: rawData.Name || '',
+    askingPrice: rawData.Price || '',
+    annualRevenue: rawData.Revenue || '',
+    cashFlow: rawData.CashFlow || '',
+    location: rawData.Location || '',
+    description: rawData.Description || '',
+    broker: rawData.Broker || '',
+    yearEstablished: rawData.YearEstablished || ''
+  };
+
+  // Validate and parse the scraped data
+  const validatedData = scrapedDataSchema.parse(transformedData);
+  console.log('Validated data:', validatedData);
+
+  return validatedData;
+}-e 
+
+File: src/lib/supabase.ts
+
+import { createClient } from '@supabase/supabase-js'
+
+// Ensure environment variables are properly typed
+declare global {
+  interface ProcessEnv {
+    NEXT_PUBLIC_SUPABASE_URL: string
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: string
+  }
+}
+
+// Validate environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
+}
+
+// Create Supabase client
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)-e 
+
+File: src/components/BusinessDataForm.tsx
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+interface BusinessData {
+  businessName?: string
+  annualRevenue?: number
+  employeeCount?: number
+  yearFounded?: number
+  industry?: string
+}
+
+export default function BusinessDataForm({ initialData }: { initialData: BusinessData }) {
+  const [formData, setFormData] = useState(initialData)
+  const router = useRouter()
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Here you would typically save the data to your state management solution or backend
+    console.log('Submitting data:', formData)
+    // Navigate to the dashboard
+    router.push('/dashboard')
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Business Data</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="businessName">Business Name</Label>
+            <Input
+              id="businessName"
+              name="businessName"
+              value={formData.businessName || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="annualRevenue">Annual Revenue</Label>
+            <Input
+              id="annualRevenue"
+              name="annualRevenue"
+              type="number"
+              value={formData.annualRevenue || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="employeeCount">Employee Count</Label>
+            <Input
+              id="employeeCount"
+              name="employeeCount"
+              type="number"
+              value={formData.employeeCount || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="yearFounded">Year Founded</Label>
+            <Input
+              id="yearFounded"
+              name="yearFounded"
+              type="number"
+              value={formData.yearFounded || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="industry">Industry</Label>
+            <Input
+              id="industry"
+              name="industry"
+              value={formData.industry || ''}
+              onChange={handleChange}
+            />
+          </div>
+          <Button type="submit">Proceed to Dashboard</Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}-e 
+
+File: src/components/UrlInput.tsx
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { z } from 'zod'
+import { scrapeBusinessData, ScrapedData } from '@/lib/scrapingbee-client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/components/ui/use-toast'
+import BusinessDataForm from './BusinessDataForm'
+
+// Define the URL schema for validation
+const urlSchema = z.string().url()
+
+export default function UrlInput() {
+  const [url, setUrl] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [scrapedData, setScrapedData] = useState<ScrapedData | null>(null)
+  const { toast } = useToast()
+  const router = useRouter()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setScrapedData(null)
+
+    try {
+      // Validate the URL
+      urlSchema.parse(url)
+
+      // Scrape the business data
+      const data = await scrapeBusinessData(url)
+      setScrapedData(data)
+
+      toast({
+        title: 'Success',
+        description: 'Business data extracted successfully!',
+      })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Invalid URL',
+          description: 'Please enter a valid URL.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to extract business data. Please try again or enter the information manually.',
+          variant: 'destructive',
+        })
+        // Redirect to empty form for manual entry
+        router.push('/manual-entry')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="url">Business Website URL</Label>
+          <Input
+            id="url"
+            type="url"
+            placeholder="https://www.example.com"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            required
+          />
+        </div>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Extracting...' : 'Extract Business Data'}
+        </Button>
+      </form>
+
+      {scrapedData && <BusinessDataForm initialData={scrapedData} />}
+    </div>
+  )
+}-e 
+
+File: src/app/dashboard/page.tsx
+
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { User } from '@supabase/supabase-js'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/components/ui/use-toast'
+
+export default function DashboardPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createClientComponentClient()
+
+  // Business data state
+  const [businessName, setBusinessName] = useState('')
+  const [askingPrice, setAskingPrice] = useState('')
+  const [annualRevenue, setAnnualRevenue] = useState('')
+  const [annualProfit, setAnnualProfit] = useState('')
+
+  // Calculated metrics state
+  const [calculatedMetrics, setCalculatedMetrics] = useState({
+    revenueMultiple: 0,
+    profitMultiple: 0,
+  })
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+      } else {
+        router.push('/login')
+      }
+    }
+    getUser()
+  }, [supabase, router])
+
+  // Calculate metrics whenever relevant inputs change
+  const calculateMetrics = useCallback(() => {
+    const price = parseFloat(askingPrice)
+    const revenue = parseFloat(annualRevenue)
+    const profit = parseFloat(annualProfit)
+
+    if (!isNaN(price) && !isNaN(revenue) && !isNaN(profit)) {
+      setCalculatedMetrics({
+        revenueMultiple: price / revenue,
+        profitMultiple: price / profit,
+      })
+    }
+  }, [askingPrice, annualRevenue, annualProfit])
+
+  useEffect(() => {
+    calculateMetrics()
+  }, [calculateMetrics])
+
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    switch (name) {
+      case 'businessName':
+        setBusinessName(value)
+        break
+      case 'askingPrice':
+        setAskingPrice(value)
+        break
+      case 'annualRevenue':
+        setAnnualRevenue(value)
+        break
+      case 'annualProfit':
+        setAnnualProfit(value)
+        break
+    }
+  }
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validate inputs
+    if (!businessName || !askingPrice || !annualRevenue || !annualProfit) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields before analyzing.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Parse numeric values
+    const price = parseFloat(askingPrice)
+    const revenue = parseFloat(annualRevenue)
+    const profit = parseFloat(annualProfit)
+
+    if (isNaN(price) || isNaN(revenue) || isNaN(profit)) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter valid numbers for all financial fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Metrics are already calculated in real-time, so we just need to display them
+    toast({
+      title: "Analysis Results",
+      description: `Revenue Multiple: ${calculatedMetrics.revenueMultiple.toFixed(2)}x\nProfit Multiple: ${calculatedMetrics.profitMultiple.toFixed(2)}x`,
+    })
+  }
+
+  if (!user) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Welcome to your Dashboard</CardTitle>
+          <CardDescription>You&apos;re signed in as {user.email}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business Name</Label>
+              <Input
+                id="businessName"
+                name="businessName"
+                value={businessName}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="askingPrice">Asking Price ($)</Label>
+              <Input
+                id="askingPrice"
+                name="askingPrice"
+                type="number"
+                value={askingPrice}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="annualRevenue">Annual Revenue ($)</Label>
+              <Input
+                id="annualRevenue"
+                name="annualRevenue"
+                type="number"
+                value={annualRevenue}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="annualProfit">Annual Profit ($)</Label>
+              <Input
+                id="annualProfit"
+                name="annualProfit"
+                type="number"
+                value={annualProfit}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <p>Revenue Multiple: {calculatedMetrics.revenueMultiple.toFixed(2)}x</p>
+              <p>Profit Multiple: {calculatedMetrics.profitMultiple.toFixed(2)}x</p>
+            </div>
+            <Button type="submit">Analyze Business</Button>
+          </form>
+          <div className="mt-4">
+            <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}-e 
+
+File: src/app/login/page.tsx
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+
+// Define the shape of our error object
+interface AuthError {
+  message: string;
+}
+
+export default function Login() {
+  // State for form inputs and error handling
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  
+  // Hooks for routing and Supabase client
+  const router = useRouter()
+  const supabase = createClientComponentClient()
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    try {
+      // Attempt to sign in with Supabase
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      // Redirect to dashboard on successful login
+      router.push('/dashboard')
+    } catch (error) {
+      // Type assertion to treat the caught error as AuthError
+      const authError = error as AuthError
+      setError(authError.message)
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+          <CardDescription className="text-center">Enter your email and password to access your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <Button type="submit" className="w-full">Sign In</Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+}-e 
+
+File: src/app/register/page.tsx
+
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const supabase = createClientComponentClient()
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+
+      if (error) {
+        setErrorMessage(error.message)
+        return
+      }
+
+      router.push('/login?registered=true')
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred')
+      console.error('Registration error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardDescription>
+            Enter your email and password to create your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {errorMessage && (
+              <div className="text-sm text-red-500">{errorMessage}</div>
+            )}
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Creating account..." : "Create account"}
+            </Button>
+          </form>
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{' '}
+            <Link 
+              href="/login" 
+              className="text-primary hover:underline"
+            >
+              Sign in here
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}-e 
+
+File: src/lib/utils.ts
+
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}

@@ -1,6 +1,8 @@
 .
 ├── README.md
+├── combined_subi_app_clean.txt
 ├── components.json
+├── create_subi_file_structure.sh
 ├── file_structure.txt
 ├── next-env.d.ts
 ├── next.config.js
@@ -8,12 +10,6 @@
 ├── package.json
 ├── postcss.config.js
 ├── postcss.config.mjs
-├── public
-│   ├── file.svg
-│   ├── globe.svg
-│   ├── next.svg
-│   ├── vercel.svg
-│   └── window.svg
 ├── src
 │   ├── app
 │   │   ├── dashboard
@@ -26,6 +22,8 @@
 │   │   ├── layout.tsx
 │   │   ├── login
 │   │   │   └── page.tsx
+│   │   ├── manual-entry
+│   │   │   └── page.tsx
 │   │   ├── page.tsx
 │   │   └── register
 │   │       └── page.tsx
@@ -37,6 +35,8 @@
 │   │       ├── card.tsx
 │   │       ├── input.tsx
 │   │       ├── label.tsx
+│   │       ├── toast.tsx
+│   │       ├── toaster.tsx
 │   │       └── use-toast.ts
 │   ├── hooks
 │   ├── lib
@@ -44,7 +44,8 @@
 │   │   ├── supabase.ts
 │   │   └── utils.ts
 │   └── middleware.ts
+├── subi_app_clean_structure.txt
 ├── tailwind.config.ts
 └── tsconfig.json
 
-12 directories, 36 files
+12 directories, 37 files
