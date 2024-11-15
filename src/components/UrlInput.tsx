@@ -1,13 +1,11 @@
-'use client'
-
 import { useState } from 'react'
-import { useToast } from '@/components/ui/use-toast'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { scrapeBusinessData } from '@/lib/scraper'
+import { Input } from '@/components/ui/input'
+import { useToast } from '@/components/ui/use-toast'
+import { ScrapedData } from '@/types'
 
-interface UrlInputProps {
-  onDataScraped: (data: any) => void
+export interface UrlInputProps {
+  onDataScraped: (data: ScrapedData) => void
 }
 
 export function UrlInput({ onDataScraped }: UrlInputProps) {
@@ -20,22 +18,31 @@ export function UrlInput({ onDataScraped }: UrlInputProps) {
     setIsLoading(true)
 
     try {
-      // Validate URL
-      new URL(url)
+      const response = await fetch('/api/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      })
 
-      // Scrape the business data
-      const data = await scrapeBusinessData(url)
-      onDataScraped(data)
+      const data = await response.json()
 
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to scrape data')
+      }
+
+      onDataScraped(data.data)
       toast({
-        title: 'Data scraped successfully',
-        description: 'The business data has been retrieved.',
+        title: 'Success',
+        description: 'Successfully scraped business data',
       })
     } catch (error) {
+      console.error('Error:', error)
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'An error occurred while scraping the data.',
         variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to scrape business data. Please try again.',
       })
     } finally {
       setIsLoading(false)
@@ -43,13 +50,14 @@ export function UrlInput({ onDataScraped }: UrlInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex space-x-2">
+    <form onSubmit={handleSubmit} className="flex gap-2">
       <Input
         type="url"
-        placeholder="Enter business listing URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
+        placeholder="Enter business listing URL"
         required
+        className="flex-grow"
       />
       <Button type="submit" disabled={isLoading}>
         {isLoading ? 'Scraping...' : 'Scrape'}

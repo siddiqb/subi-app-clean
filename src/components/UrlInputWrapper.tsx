@@ -1,12 +1,16 @@
 'use client'
 
+import React from 'react'
 import { UrlInput } from '@/components/UrlInput'
+import { ScrapedData } from '@/types'
 
-export function UrlInputWrapper() {
-  const handleDataScraped = (data: any) => {
-    console.log(data)
-    // Handle the scraped data here
-  }
+// 1. Define the props interface with a specific type for onDataScraped
+export interface UrlInputWrapperProps {
+  onDataScraped: (data: ScrapedData) => void
+}
 
-  return <UrlInput onDataScraped={handleDataScraped} />
+// 2. Create the UrlInputWrapper component
+export const UrlInputWrapper: React.FC<UrlInputWrapperProps> = ({ onDataScraped }) => {
+  // 3. Render the UrlInput component and pass the onDataScraped prop
+  return <UrlInput onDataScraped={onDataScraped} />
 }

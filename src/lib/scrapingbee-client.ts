@@ -1,53 +1,33 @@
-import { z } from 'zod';
+// 1. Import necessary dependencies
+import axios from 'axios'
+import { ScrapedData } from '@/types'
 
-// Mock data
-const mockData = {
-  "Name": "Medical Spa Offering Noninvasive Health/Beauty Cosmetic Procedures",
-  "Location": "Monmouth County, NJ",
-  "Price": "$600,000",
-  "Revenue": "$400,000",
-  "CashFlow": "$169,000",
-  "Description": "This medical spa specializes in noninvasive health and beauty procedures...",
-  "Broker": "Empire Business Management",
-  "YearEstablished": "2018"
-};
+// 2. Define the scrapeBusinessData function
+export async function scrapeBusinessData(
+  url: string
+): Promise<ScrapedData> {
+  try {
+    // 3. Create the request payload
+    const payload = {
+      url: url,
+    }
 
-// Define the response schema for scraped data
-const scrapedDataSchema = z.object({
-  businessName: z.string().optional(),
-  askingPrice: z.string().optional(),
-  annualRevenue: z.string().optional(),
-  cashFlow: z.string().optional(),
-  location: z.string().optional(),
-  description: z.string().optional(),
-  broker: z.string().optional(),
-  yearEstablished: z.string().optional(),
-});
+    // 4. Make the API request to our own API route
+    const response = await axios.post('/api/scrape', payload)
 
-export type ScrapedData = z.infer<typeof scrapedDataSchema>;
+    // 5. Check the response status
+    if (response.status !== 200) {
+      throw new Error(`Scraping API returned status ${response.status}`)
+    }
 
-export async function scrapeBusinessData(url: string, profileId: string): Promise<ScrapedData> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    // 6. Process the response data and extract relevant information
+    const scrapedData: ScrapedData = response.data.data
 
-  // Use mock data instead of making an actual API call
-  const rawData = mockData;
-
-  // Transform the raw data to match our schema
-  const transformedData = {
-    businessName: rawData.Name || '',
-    askingPrice: rawData.Price || '',
-    annualRevenue: rawData.Revenue || '',
-    cashFlow: rawData.CashFlow || '',
-    location: rawData.Location || '',
-    description: rawData.Description || '',
-    broker: rawData.Broker || '',
-    yearEstablished: rawData.YearEstablished || ''
-  };
-
-  // Validate and parse the scraped data
-  const validatedData = scrapedDataSchema.parse(transformedData);
-  console.log('Validated data:', validatedData);
-
-  return validatedData;
+    // 7. Return the scraped data
+    return scrapedData
+  } catch (error) {
+    // 8. Handle and log any errors
+    console.error('Error scraping business data:', error)
+    throw new Error('Failed to scrape business data. Please try again later.')
+  }
 }

@@ -3,7 +3,29 @@
 ├── combined_subi_app_clean.txt
 ├── components.json
 ├── create_subi_file_structure.sh
-├── file_structure.txt
+├── logs
+│   ├── auth-error-1731650830191.log
+│   ├── auth-error-1731650873416.log
+│   ├── auth-error-1731651551209.log
+│   ├── auth-error-1731651923612.log
+│   ├── cheerio-error-1731625028238.log
+│   ├── cheerio-error-1731625272351.log
+│   ├── cheerio-error-1731625461299.log
+│   ├── cheerio-error-1731647658514.log
+│   ├── cheerio-load-1731647658508.log
+│   ├── converted-response-1731625028236.log
+│   ├── converted-response-1731625272349.log
+│   ├── converted-response-1731625461297.log
+│   ├── fatal-error-1731650830194.log
+│   ├── fatal-error-1731650873417.log
+│   ├── raw-response-1731625028225.log
+│   ├── raw-response-1731625272340.log
+│   ├── raw-response-1731625461289.log
+│   ├── raw-response-1731647658464.log
+│   ├── request-1731625026842.log
+│   ├── request-1731625270762.log
+│   ├── request-1731625459867.log
+│   └── request-1731647656313.log
 ├── next-env.d.ts
 ├── next.config.js
 ├── package-lock.json
@@ -29,23 +51,44 @@
 │   │       └── page.tsx
 │   ├── components
 │   │   ├── BusinessDataForm.tsx
+│   │   ├── DashboardLayout.tsx
+│   │   ├── EnhancedDashboard.tsx
 │   │   ├── UrlInput.tsx
+│   │   ├── UrlInputWrapper.tsx
 │   │   └── ui
 │   │       ├── button.tsx
 │   │       ├── card.tsx
+│   │       ├── floating-label-input.tsx
+│   │       ├── form.tsx
 │   │       ├── input.tsx
 │   │       ├── label.tsx
+│   │       ├── switch.tsx
+│   │       ├── tabs.tsx
+│   │       ├── textarea.tsx
 │   │       ├── toast.tsx
 │   │       ├── toaster.tsx
 │   │       └── use-toast.ts
 │   ├── hooks
+│   │   └── useUser.ts
 │   ├── lib
+│   │   ├── data-transformations.ts
+│   │   ├── json-utils.ts
+│   │   ├── scraper.ts
+│   │   ├── scraping-utils.ts
 │   │   ├── scrapingbee-client.ts
+│   │   ├── scrapingbee-utils.ts
+│   │   ├── supabase-client.ts
 │   │   ├── supabase.ts
 │   │   └── utils.ts
-│   └── middleware.ts
+│   ├── middleware.ts
+│   ├── pages
+│   │   ├── api
+│   │   │   └── scrape.ts
+│   │   └── dummy_listing.html
+│   └── types
+│       └── index.ts
 ├── subi_app_clean_structure.txt
 ├── tailwind.config.ts
 └── tsconfig.json
 
-12 directories, 37 files
+16 directories, 76 files
